@@ -1,0 +1,32 @@
+{-# STDLIB_VERSION 3 #-}
+{-# CONTENT_TYPE EXPRESSION #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+func checkK(de:DataEntry, cmp:String, ts:String) = {
+    let l = de.key.split("_")
+    l[0] == ts && l[1] == cmp
+}
+
+match (tx) {
+    case dx:DataTransaction => {
+        let s = dx.data.size()
+        if s != 6 then false
+        else {
+            let dTitle   = dx.data[0].extract()
+            let dContact = dx.data[1].extract()
+            let dAddr    = dx.data[2].extract()
+            let dType    = dx.data[3].extract()
+            let dLink    = dx.data[4].extract()
+            let dLikes   = dx.data[5].extract()
+
+
+            let ts = dTitle.key.split("_")[0]
+
+            let OK = checkK(dTitle, "title", ts) && checkK(dContact, "contact", ts) && checkK(dAddr, "addr", ts) &&
+                checkK(dType, "type", ts) && checkK(dLink, "link", ts) && checkK(dLikes, "likes", ts)
+
+            OK
+        }
+    }
+    case _ => sigVerify(tx.bodyBytes, tx.proofs[0], tx.senderPublicKey)
+}
